@@ -27,4 +27,5 @@ List s2have(const DataFrame input)
     List z = List::create(x, y);
 
     return z;
+    int x = 1;
 }
