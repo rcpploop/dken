@@ -10,19 +10,31 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// rcpp_hello_world
-List rcpp_hello_world();
-RcppExport SEXP _dken_rcpp_hello_world() {
+// s2have
+List s2have(const DataFrame input);
+RcppExport SEXP _dken_s2have(SEXP inputSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpp_hello_world());
+    Rcpp::traits::input_parameter< const DataFrame >::type input(inputSEXP);
+    rcpp_result_gen = Rcpp::wrap(s2have(input));
+    return rcpp_result_gen;
+END_RCPP
+}
+// test2
+int test2();
+RcppExport SEXP _dken_test2() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(test2());
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_dken_rcpp_hello_world", (DL_FUNC) &_dken_rcpp_hello_world, 0},
+    {"_dken_s2have", (DL_FUNC) &_dken_s2have, 1},
+    {"_dken_test2", (DL_FUNC) &_dken_test2, 0},
     {NULL, NULL, 0}
 };
 

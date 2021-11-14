@@ -29,6 +29,8 @@ List s2have(const DataFrame input)
     return z;
 
 }
-/*** R
-timesTwo(42)
-*/
+
+// [[Rcpp::export]]
+int test2(){
+  return 1;
+}
