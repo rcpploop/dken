@@ -11,7 +11,7 @@ using namespace Rcpp;
 // [[Rcpp::plugins("cpp11")]]
 
 // [[Rcpp::export]]
-List s2have(const DataFrame input)
+List cpp_s2have(const DataFrame input)
 {
     int input_row = input.nrows();
 
@@ -31,6 +31,6 @@ List s2have(const DataFrame input)
 }
 
 // [[Rcpp::export]]
-int test2(){
+int cpp_test2(){
   return 1;
 }
