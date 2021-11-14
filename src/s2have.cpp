@@ -13,24 +13,39 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 List cpp_s2have(const DataFrame input)
 {
-    int input_row = input.nrows();
+    int i_row = input.nrows();
 
-    IntegerVector feder_1 = input[0]; // feder_1
-    IntegerVector feder_2 = input[1]; // feder_2
-    IntegerVector s1 = input[2];      // s1
-    IntegerVector s2 = input[3];      // s2
+    NumericVector fed_1 = input[0]; // fed_1
+    NumericVector fed_2 = input[1]; // fed_2
+    NumericVector s1 = input[2];      // s1
+    NumericVector s2 = input[3];      // s2
 
-    std::unordered_map<long int, std::vector<int>> memo;
+    std::unordered_map<int, NumericVector> memo;
 
-    CharacterVector x = CharacterVector::create("foo", "bar");
-    NumericVector y = NumericVector::create(0.0, 1.0);
-    List z = List::create(x, y);
+    NumericVector x {100,200,300,400};
+    NumericVector y {2000,2000,3000,4000};
+    NumericVector z {30,20,50,40};
 
-    return z;
+    memo[1] = x;
+    memo[2] = y;
+    memo[3] = z;
+
+   DataFrame temp = {};
+   for(auto itr = memo.begin(); itr != memo.end(); ++itr) {
+     NumericVector t = clone(itr->second);
+     t.push_front(itr->first);
+     temp.push_back(t);
+    }
+    List zz = List::create(temp);
+
+    return zz;
 
 }
 
-// [[Rcpp::export]]
-int cpp_test2(){
-  return 1;
-}
+/*** R
+mat <- data.frame(1:3,2:4,3:5,4:6)
+colnames(mat) <- c("fed1","fed2","s1","s2")
+k <- cpp_s2have(mat)
+k
+*/
+

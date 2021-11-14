@@ -5,7 +5,3 @@ cpp_s2have <- function(input) {
     .Call(`_dken_cpp_s2have`, input)
 }
 
-cpp_test2 <- function() {
-    .Call(`_dken_cpp_test2`)
-}
-

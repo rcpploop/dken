@@ -21,20 +21,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// cpp_test2
-int cpp_test2();
-RcppExport SEXP _dken_cpp_test2() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(cpp_test2());
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_dken_cpp_s2have", (DL_FUNC) &_dken_cpp_s2have, 1},
-    {"_dken_cpp_test2", (DL_FUNC) &_dken_cpp_test2, 0},
     {NULL, NULL, 0}
 };
 
