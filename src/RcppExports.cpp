@@ -11,7 +11,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // cpp_s2have
-List cpp_s2have(const DataFrame input);
+DataFrame cpp_s2have(const DataFrame input);
 RcppExport SEXP _dken_cpp_s2have(SEXP inputSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

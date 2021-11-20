@@ -36,27 +36,61 @@ void print_map(const std::unordered_map<int,NumericVector>& map){
 
 std::vector<int> cpp_s2loop(const int s2,const DataFrame& input_fed,
                             std::unordered_map<int, std::vector<int>>& memo){
-  const NumericVector s1 = input_fed[1];
-  const LogicalVector bools = (s1 == s2);
   
-  NumericVector s1_tmp = s1[bools];
-  const NumericVector s1_unique = unique(s1_tmp);
+  // s1_col　| s2_col | data_col...
+  // ______________________________
+  //  A　  　|  s2    | data_origin
+  //  s2     |  B     | data[1]
+  //  B      |  0     | data[2]
+  //  B      |  C     | data[3]
+  //  C      |  0     | data[4]
   
-  if(s1_unique.size() == 0){
+  const NumericVector s1_col = input_fed[0];
+  const NumericVector s2_col = input_fed[1];
+  const int input_col = input_fed.length();
+  
+  // summarize data_origin
+  const LogicalVector bool_s2 = (s2_col == s2);
+  std::vector<int> output;
+  
+  for(int i = 0; i < input_col-2 ; i++){
+    
+    NumericVector input_col = input_fed[i+2];
+    input_col = input_col[bool_s2];
+    int s = sum(input_col);
+    output.push_back(s);
+    
+  }
+  
+  // find s2 in s1_col
+  const LogicalVector bool_s1 = (s1_col == s2);
+  
+  NumericVector s2_tmp = s2_col[bools];
+  const NumericVector s2_unique = unique(s2_tmp);
+  
+  if(s2_unique.size() == 0){
     const int input_row = input_fed.length() -2;
     
     const std::vector<int> output (input_row,0);
     memo[s2] = output;
     
     return output;
-  }
-  
-  for(int i; i < s1_unique.size(); i++){
-    if(memo.count(s1_unique[i]) > 0){
-      
-      
-    }
     
+  }else{
+  
+  std::vector<std::vector<int>> store; 
+    
+  for(int i = 0; i < s2_unique.size(); i++){
+    
+    if(memo.count(s2_unique[i]) > 0){
+      
+      int s = s2_unique[i];
+      store.push_back(memo[s]);
+      
+    }else{
+      // std::vector<int> output_temp = cpp_s2loop();
+    }
+  }
   }
   std::vector<int> x = {1,2,3};
   return x;
