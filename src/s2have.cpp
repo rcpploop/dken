@@ -47,31 +47,42 @@ std::vector<int> cpp_s2loop(const int s2,const DataFrame& input_fed,
   
   const NumericVector s1_col = input_fed[0];
   const NumericVector s2_col = input_fed[1];
-  const int input_col = input_fed.length();
+  const int input_col = input_fed.length() -2;
   
-  // summarize data_origin
+  // data_origin in s2
   const LogicalVector bool_s2 = (s2_col == s2);
+
+  // find s2 in s1_col
+  const LogicalVector bool_s1 = (s1_col == s2);
+  // zero in s2_col
+  LogicalVector bool_0 = (s2_col == 0);
+  // next_s2 == zero
+  LogicalVector bool_s2_0 = bool_s1 & bool_0;
+  // next_s2 not zero
+  LogicalVector bool_s2next = bool_s1 & !(bool_0);
+  // data_origin or s2 == 0
+  const LogicalVector bool_s2end = bool_s2|bool_s2_0;
+
+  // summarize data_origin or s2==0
   std::vector<int> output;
   
   for(int i = 0; i < input_col-2 ; i++){
     
     NumericVector input_col = input_fed[i+2];
-    input_col = input_col[bool_s2];
+    input_col = input_col[bool_s2end];
     int s = sum(input_col);
     output.push_back(s);
     
   }
-  
-  // find s2 in s1_col
-  const LogicalVector bool_s1 = (s1_col == s2);
-  
-  NumericVector s2_tmp = s2_col[bools];
-  const NumericVector s2_unique = unique(s2_tmp);
+
+  // find next_s2 in s2_col
+  NumericVector next_s2 = s2_col[bool_s2next];
+  const NumericVector s2_unique = unique(next_s2);
   
   if(s2_unique.size() == 0){
-    const int input_row = input_fed.length() -2;
+    const int input_col = input_fed.length() -2;
     
-    const std::vector<int> output (input_row,0);
+    const std::vector<int> output (input_col,0);
     memo[s2] = output;
     
     return output;
