@@ -10,19 +10,20 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// rcpp_hello_world
-List rcpp_hello_world();
-RcppExport SEXP _dken_rcpp_hello_world() {
+// cpp_s2have
+DataFrame cpp_s2have(const DataFrame input);
+RcppExport SEXP _dken_cpp_s2have(SEXP inputSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpp_hello_world());
+    Rcpp::traits::input_parameter< const DataFrame >::type input(inputSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_s2have(input));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_dken_rcpp_hello_world", (DL_FUNC) &_dken_rcpp_hello_world, 0},
+    {"_dken_cpp_s2have", (DL_FUNC) &_dken_cpp_s2have, 1},
     {NULL, NULL, 0}
 };
 
