@@ -20,5 +20,5 @@ s2have <- function(input){
   
   input <- input %>% arrange(s1)
   
-  cpp_s2have(input)
+  cpp_s2has(input)
 }
