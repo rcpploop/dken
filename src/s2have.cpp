@@ -27,6 +27,25 @@ void print_dataframe(const DataFrame& input){
 }
 
 
+void print_vector(const std::vector<int>& input){
+  for(auto itr = input.begin(); itr != input.end(); itr++){
+      Rcout << *itr << "\t";
+    }
+    Rcout << "\n";
+}
+
+
+
+void print_vector2d(const std::vector<std::vector<int>>& input){
+  for(auto itr = input.begin(); itr != input.end(); itr++){
+    for(auto itr2 = itr->begin(); itr2 != itr->end(); itr2++){
+      Rcout << *itr2 << "\t";
+    }
+    Rcout << "\n";
+  }
+}
+
+
 
 
 void print_map(const std::unordered_map<int,NumericVector>& map){
@@ -36,7 +55,14 @@ void print_map(const std::unordered_map<int,NumericVector>& map){
   }
 }
 
-void print_map(const std::unordered_map<int,std::vector<int>>& map){
+void print_map(const std::unordered_map<std::string,NumericVector>& map){
+  for(auto itr=map.begin(); itr!=map.end(); itr++) {
+    Rcout << "key: " << itr->first << ":\t";      // キーを表示
+    Rcout << itr->second << "\n" << "\n";
+  }
+}
+
+void print_map(const std::unordered_map<std::string,std::vector<int>>& map){
   for(auto itr=map.begin(); itr!=map.end(); itr++) {
     Rcout << "key: " << itr->first << ":\t";      // キーを表示
     
@@ -50,26 +76,35 @@ void print_map(const std::unordered_map<int,std::vector<int>>& map){
 
 
 std::vector<int> summarise_vector(std::vector<std::vector<int>> vector2d){
-  std::vector<int> output;
-  std::size_t sz = vector2d[0].size();
+
+  const std::size_t sz = vector2d[0].size();
+  std::vector<int> output(sz);
   
+  // Rcout << "sz" << sz << "\n";
   for(auto itr=vector2d.begin(); itr != vector2d.end(); itr++){
-    int s = 0;
-    for(int i = 0; i < sz; ++i){
-      std::vector<int> temp = *itr;
-      s += temp[i];
+    std::vector<int> temp = *itr;
+    for(int i = 0; i < sz; i++){
+      output[i] += temp[i];
     }
-    output.push_back(s);
   }
+    // print_vector(output);
+    return output;
+  }
+
+
+
+
+std::vector<int> cpp_s2loop(const int feder,const int s2,const DataFrame& input_fed,
+                            std::unordered_map<std::string, std::vector<int>>& memo,int counter){
   
-  return output;
-}
-
-
-
-
-std::vector<int> cpp_s2loop(const int s2,const DataFrame& input_fed,
-                            std::unordered_map<int, std::vector<int>>& memo){
+  if(counter > 10000){
+    Rcout << "Error log: Feder = " << feder << "\n";
+    Rcout << "         : " << "\n";
+    //print_dataframe(input_fed);
+    //Rcout << "\n\n";
+    return std::vector<int> {0,0,0};
+    stop("Error: Infinite loop has occurred.");
+    }
   
   // s1_col　| s2_col | data_col...
   // ______________________________
@@ -113,11 +148,12 @@ std::vector<int> cpp_s2loop(const int s2,const DataFrame& input_fed,
   // get next_s2 in s2_col
   const NumericVector next_s2 = s2_col[bool_s2next];
   const NumericVector s2_unique = unique(next_s2);
+  const std::string id = std::to_string(feder) + "_" + std::to_string(s2);
   
   if(s2_unique.size() == 0){
     
     // const std::vector<int> output (input_column,0);
-    memo[s2] = output;
+    memo[id] = output;
     
     return output;
     
@@ -130,37 +166,46 @@ std::vector<int> cpp_s2loop(const int s2,const DataFrame& input_fed,
   
   for(int i = 0; i < s2_unique.size(); i++){
     const int s = s2_unique[i];
+    const std::string id_next = std::to_string(feder) + "_" + std::to_string(s); 
     
     // If s2 exists in the memo, store the value of the memo in s2
-    if(memo.count(s) > 0){
+    if(memo.count(id_next) > 0){
     
-      store.push_back(memo[s]);
+      store.push_back(memo[id_next]);
       
     }else{
-      std::vector<int> output_temp = cpp_s2loop(s,input_fed,memo);
+      counter ++;
+      std::vector<int> output_temp = cpp_s2loop(feder,s,input_fed,memo,counter);
       store.push_back(output_temp);
     }
   }
+    // print_vector2d(store);
     return summarise_vector(store);
   }
 }
 
 
 
-DataFrame map_to_dataframe(std::unordered_map<int,std::vector<int>>& map){
+DataFrame map_to_dataframe(std::unordered_map<std::string,std::vector<int>>& map){
     
-    NumericVector col;
+    CharacterVector col_char;
+    std::vector<std::vector<int>> col_num;
     DataFrame output;
     
-    for(auto itr=map.begin(); itr!=map.end(); itr++) {
-      col.push_back(itr->first);
-      // col.push_back(itr->second);
-      for(int i = 0; i < itr->second.size(); ++i){
-        col.push_back(itr->second[i]);
-      }
+    int i = 0;
+    for(auto itr = map.begin(); itr != map.end(); itr++) {
       
-      const NumericVector col_clone = clone(col);
-      output.push_back(col_clone);
+      col_char.push_back(itr->first);
+      
+      for(int j = 0; j < itr->second.size(); j++){
+        col_num[i][j]=(itr->second[j]);
+      }
+      i++;
+    }
+    output.push_back(col_char);
+    
+    for(int k = 0; k < i; k++){
+      output.push_back(col_num[k]);
     }
     
     return output;
@@ -171,7 +216,7 @@ DataFrame map_to_dataframe(std::unordered_map<int,std::vector<int>>& map){
 // [[Rcpp::export]]
 DataFrame cpp_s2has(const DataFrame input)
 {
-    print_dataframe(input);
+    // print_dataframe(input);
     const NumericVector fed_1 = input[0]; // fed_1
     const NumericVector fed_2 = input[1]; // fed_2
     const NumericVector s1 = input[2];      // s1
@@ -181,10 +226,11 @@ DataFrame cpp_s2has(const DataFrame input)
     fed_list_temp.sort();
     const NumericVector fed_list = fed_list_temp[fed_list_temp > 0]; // remove 0 or -1
 
-    std::unordered_map<int, std::vector<int>> memo;
+    std::unordered_map<std::string, std::vector<int>> memo;
     
     //Processing per fed
     for(int i = 0; i < fed_list.size();i++){
+      //Rcout << "processing: " << i << " / " << fed_list.size() << "\n";  
       // search fed_list[i] index
       const LogicalVector bool1 = (fed_1 == fed_list[i]);
       const LogicalVector bool2 = (fed_2 == fed_list[i]);
@@ -210,46 +256,64 @@ DataFrame cpp_s2has(const DataFrame input)
         }
       
       // print_map(map_r);
-      Rcout << "Feder: " << fed_list[i] << "\n"; 
-      print_dataframe(input_sub);
+      // Rcout << "Feder: " << fed_list[i] << "\n"; 
+      // print_dataframe(input_sub);
 
       // unique s2_sub and remove 0 or -1
       NumericVector s2_tmp = unique(s2_sub).sort();
       const NumericVector s2_unique = s2_tmp[s2_tmp > 0];
-      Rcout << "s2_unique: " << s2_unique << "\n"; 
 
       for(int k = 0; k < s2_unique.size(); k++){
-        if(memo.count(s2_unique[k]) > 0){
+        const int feder_tmp = fed_list[i];
+        const int s2_tmp = s2_unique[k];
+        
+        std::string id = std::to_string(feder_tmp) + "_" + std::to_string(s2_tmp);
+        if(memo.count(id) > 0){
           
           // if memo already has data, skip
           continue;
           
         }else{
           
-          std::vector<int> output = cpp_s2loop(s2_unique[k],input_sub,memo);
-          memo[s2_unique[k]] = output;
-          print_map(memo);
+          std::vector<int> output = cpp_s2loop(fed_list[i],s2_unique[k],input_sub,memo,0);
+          memo[id] = output;
         }
     }
     }
     // Convert memo to data frame
-    DataFrame data = map_to_dataframe(memo);
-    return data;
+    // DataFrame data = map_to_dataframe(memo);
+    Rcout << "end" << "\n";
+    //print_map(memo);
+    NumericVector v = {1,2};
+    // データフレムを作成します
+    DataFrame df = DataFrame::create( Named("V1") = v,
+                                      Named("V2") = clone(v));
+    Rcout << "end2" << "\n";
+    return df;
 }
 
 /*** R
 set.seed(100)
 library(tictoc)
-mat <- data.frame(1:3,2:4,3:5,4:6,5:7,6:8,101:103)
-# d <- 5
-# mat <- data.frame(vapply(runif(d, min = 0, max = 20),round,1),
-#                   vapply(runif(d, min = 0, max = 20),round,1),
-#                   vapply(runif(d, min = 0, max = 200),round,1),
-#                   vapply(runif(d, min = 0, max = 200),round,1),
-#                   vapply(runif(d, min = 0, max = 200),round,1),
-#                   vapply(runif(d, min = 0, max = 200),round,1),
-#                   vapply(runif(d, min = 0, max = 200),round,1))
+library(tidyverse)
+# mat <- data.frame(1:3,2:4,3:5,4:6,5:7,6:8,101:103)
+
+# loop
+# mat <- data.frame(rep(1,3),rep(1,3),1:3,c(2,3,4),5:7,6:8,101:103)
+
+d <- 2000000
+mat <- data.frame(vapply(runif(d, min = 1, max = 9000),round,1),
+                  vapply(runif(d, min = 1, max = 9000),round,1),
+                  vapply(runif(d, min = 0, max = 500000),round,1),
+                  vapply(runif(d, min = 0, max = 500000),round,1),
+                  vapply(runif(d, min = 0, max = 1),round,1),
+                  vapply(runif(d, min = 0, max = 1),round,1),
+                  vapply(runif(d, min = 0, max = 1),round,1))
 colnames(mat) <- c("fed1","fed2","s1","s2","data1","data2","data3")
+
+filter_df <- data.frame(fed1 = c(4482,5867,6357,7318,7670))
+mat <- mat %>% distinct(s2,.keep_all = TRUE) %>% anti_join(filter_df,by="fed1")
+
 tic()
 k <- cpp_s2has(mat)
 toc()
