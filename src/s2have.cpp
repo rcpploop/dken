@@ -9,60 +9,108 @@ using namespace Rcpp;
 
 // [[Rcpp::plugins("cpp11")]]
 
+std::string rcpp_type(RObject x){
+  if(is<NumericVector>(x)){
+    if(Rf_isMatrix(x)){
+      return "NumericMatrix";
+    }else{
+      return "NumericVector";
+    }
+  }
+  else if(is<IntegerVector>(x)){
+    if(Rf_isFactor(x)){
+      return "factor";
+    }else{
+      return "IntegerVector";
+    }
+  }
+  else if(is<CharacterVector>(x)){
+    return "CharacterVector";
+  }
+  else if(is<LogicalVector>(x)){
+    return "LogicalVector";
+  }
+  else if(is<DataFrame>(x)){
+    return "DataFrame";
+  }
+  else if(is<List>(x)){
+    return "List";
+  }
+  else if(x.isS4()){
+    return "S4";
+  }
+  else if(x.isNULL()){
+    return "NULL";
+  }
+  else{
+    return "unknown";
+  }
+}
+
 void print_dataframe(const DataFrame& input){
   int row = input.nrows();
   int col = input.length();
+  Rcout << "print_dataframe ==================" << "\n";
   
   for (int i = 0; i  < row; i++){
     for(int j = 0; j < col; j++){
-      NumericVector temp = input[j];
-      Rcout << temp[i] << "\t";
+      std::string col_type = rcpp_type(input[j]);
       
+      if(col_type == "NumericVector"){
+        NumericVector temp = input[j];
+        Rcout << temp[i] << "\t";
+      }else if(col_type == "CharacterVector"){
+        CharacterVector temp = input[j];
+        Rcout << temp[i] << "\t";
+      }else{
+        Rcout << "err" << "\t";
+      }
       if(j == col-1){
         Rcout << "\n";
       }
     }
   }
-  Rcout << "\n";
+  Rcout << "\n" << "\n";
 }
 
-
 void print_vector(const std::vector<int>& input){
+  Rcout <<"print_vector ==================" << "\n";
   for(auto itr = input.begin(); itr != input.end(); itr++){
       Rcout << *itr << "\t";
     }
-    Rcout << "\n";
+    Rcout << "\n" << "\n";
 }
 
-
-
 void print_vector2d(const std::vector<std::vector<int>>& input){
+  Rcout << "print_vector2d ==================" << "\n";
   for(auto itr = input.begin(); itr != input.end(); itr++){
     for(auto itr2 = itr->begin(); itr2 != itr->end(); itr2++){
       Rcout << *itr2 << "\t";
     }
-    Rcout << "\n";
+    Rcout << "\n" << "\n";
   }
 }
 
-
-
-
 void print_map(const std::unordered_map<int,NumericVector>& map){
+  Rcout << "print_map ==================" << "\n";
   for(auto itr=map.begin(); itr!=map.end(); itr++) {
     Rcout << "key: " << itr->first << ":\t";      // キーを表示
     Rcout << itr->second << "\n" << "\n";
   }
+  Rcout << "\n" << "\n";
 }
 
 void print_map(const std::unordered_map<std::string,NumericVector>& map){
+  Rcout << "print_map ==================" << "\n";
   for(auto itr=map.begin(); itr!=map.end(); itr++) {
     Rcout << "key: " << itr->first << ":\t";      // キーを表示
     Rcout << itr->second << "\n" << "\n";
   }
+  Rcout << "\n" << "\n";
 }
 
 void print_map(const std::unordered_map<std::string,std::vector<int>>& map){
+  Rcout << "print_map ==================" << "\n";
   for(auto itr=map.begin(); itr!=map.end(); itr++) {
     Rcout << "key: " << itr->first << ":\t";      // キーを表示
     
@@ -188,25 +236,50 @@ std::vector<int> cpp_s2loop(const int feder,const int s2,const DataFrame& input_
 
 DataFrame map_to_dataframe(std::unordered_map<std::string,std::vector<int>>& map){
     
-    CharacterVector col_char;
-    std::vector<std::vector<int>> col_num;
+    const int row_count = map.size();
+    auto itr_tmp = map.begin();
+    const int col_count = itr_tmp->second.size();
+    
+    // Rcout << "mapsize:" << row_count << "\t" << col_count << "\n";
+    std::vector<std::vector<int>> col_num(row_count,std::vector<int>(col_count));
+    
+    CharacterVector col_id;
     DataFrame output;
     
     int i = 0;
+    
     for(auto itr = map.begin(); itr != map.end(); itr++) {
-      
-      col_char.push_back(itr->first);
-      
+
+      col_id.push_back(itr->first);
+
       for(int j = 0; j < itr->second.size(); j++){
-        col_num[i][j]=(itr->second[j]);
+        // Rcout << itr->second[j] << "\t";
+        col_num.at(i).at(j)=(itr->second[j]);
       }
+      // Rcout << "\n";
       i++;
     }
-    output.push_back(col_char);
     
-    for(int k = 0; k < i; k++){
-      output.push_back(col_num[k]);
+    // print_vector2d(col_num);
+    
+    output = DataFrame::create(Named("id") = col_id);
+    // print_dataframe(output);
+    
+
+    
+    for(int i = 0; i < col_count; i++){
+      NumericVector temp;
+      
+      for(int j = 0; j < row_count; j++){
+        // Rcout << "a " << col_num[j][i] << "\n";
+        temp.push_back(col_num[j][i]);
+      }
+      output.push_back(temp);
+
+      // Rcout << "\n";
     }
+    
+    // print_dataframe(output);
     
     return output;
 }
@@ -254,10 +327,6 @@ DataFrame cpp_s2has(const DataFrame input)
         map_r[j] = clone(temp);
         input_sub.push_back(map_r[j]);
         }
-      
-      // print_map(map_r);
-      // Rcout << "Feder: " << fed_list[i] << "\n"; 
-      // print_dataframe(input_sub);
 
       // unique s2_sub and remove 0 or -1
       NumericVector s2_tmp = unique(s2_sub).sort();
@@ -280,16 +349,14 @@ DataFrame cpp_s2has(const DataFrame input)
         }
     }
     }
+    // Rcout << "memo" << "__________________________________" << "\n";
+    // print_map(memo);
     // Convert memo to data frame
-    // DataFrame data = map_to_dataframe(memo);
-    Rcout << "end" << "\n";
-    //print_map(memo);
-    NumericVector v = {1,2};
-    // データフレムを作成します
-    DataFrame df = DataFrame::create( Named("V1") = v,
-                                      Named("V2") = clone(v));
-    Rcout << "end2" << "\n";
-    return df;
+    DataFrame data = map_to_dataframe(memo);
+    // Rcout << "data" << "__________________________________" << "\n";
+    // print_dataframe(data);
+    
+    return data;
 }
 
 /*** R
@@ -301,21 +368,28 @@ library(tidyverse)
 # loop
 # mat <- data.frame(rep(1,3),rep(1,3),1:3,c(2,3,4),5:7,6:8,101:103)
 
-d <- 2000000
-mat <- data.frame(vapply(runif(d, min = 1, max = 9000),round,1),
-                  vapply(runif(d, min = 1, max = 9000),round,1),
-                  vapply(runif(d, min = 0, max = 500000),round,1),
-                  vapply(runif(d, min = 0, max = 500000),round,1),
-                  vapply(runif(d, min = 0, max = 1),round,1),
-                  vapply(runif(d, min = 0, max = 1),round,1),
-                  vapply(runif(d, min = 0, max = 1),round,1))
-colnames(mat) <- c("fed1","fed2","s1","s2","data1","data2","data3")
+mat <- read_csv("../dummy2.csv")
+for(i in 1:10){
+mat2 <- mat %>% mutate(fed1 = fed1+19,fed2=fed2+19)
+mat <- rbind(mat,mat2)
 
-filter_df <- data.frame(fed1 = c(4482,5867,6357,7318,7670))
-mat <- mat %>% distinct(s2,.keep_all = TRUE) %>% anti_join(filter_df,by="fed1")
+}
 
-tic()
-k <- cpp_s2has(mat)
-toc()
+# d <- 4000000
+# mat <- data.frame(vapply(runif(d, min = 1, max = 9000),round,1),
+#                   vapply(runif(d, min = 1, max = 9000),round,1),
+#                   vapply(runif(d, min = 0, max = 1500000),round,1),
+#                   vapply(runif(d, min = 0, max = 1500000),round,1),
+#                   vapply(runif(d, min = 0, max = 1),round,1),
+#                   vapply(runif(d, min = 0, max = 1),round,1),
+#                   vapply(runif(d, min = 0, max = 1),round,1))
+colnames(mat) <- c("fed1","fed2","s1","s2","data1","data2","data3","data4")
+# 
+# filter_df <- data.frame(fed1 = c(4482,5867,6357,7318,7670))
+# mat <- mat %>% distinct(s2,.keep_all = TRUE) %>% anti_join(filter_df,by="fed1")
+
+output <- cpp_s2has(mat)
+# microbenchmark::microbenchmark(
+# k <- cpp_s2has(mat),times=5
+# )
 */
-
