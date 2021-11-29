@@ -1,3 +1,7 @@
 useDynLib(dken, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")
+
+import(purrr)
+import(magrittr)
+import(dplyr)
