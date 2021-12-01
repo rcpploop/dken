@@ -7,3 +7,5 @@ src/*.so
 src/*.dll
 .vscode
 teiden.csv
+sample.csv
+*.csv

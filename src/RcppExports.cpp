@@ -10,6 +10,18 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// cpp_s2has2
+List cpp_s2has2(const DataFrame INPUT, const int FEDER);
+RcppExport SEXP _dken_cpp_s2has2(SEXP INPUTSEXP, SEXP FEDERSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const DataFrame >::type INPUT(INPUTSEXP);
+    Rcpp::traits::input_parameter< const int >::type FEDER(FEDERSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_s2has2(INPUT, FEDER));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cpp_s2has
 List cpp_s2has(const DataFrame input);
 RcppExport SEXP _dken_cpp_s2has(SEXP inputSEXP) {
@@ -23,6 +35,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_dken_cpp_s2has2", (DL_FUNC) &_dken_cpp_s2has2, 2},
     {"_dken_cpp_s2has", (DL_FUNC) &_dken_cpp_s2has, 1},
     {NULL, NULL, 0}
 };

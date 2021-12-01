@@ -14,6 +14,7 @@ std::string rcpp_type(RObject x){
     if(Rf_isMatrix(x)){
       return "NumericMatrix";
     }else{
+      Rcout << "adddd";
       return "NumericVector";
     }
   }
@@ -365,38 +366,39 @@ List cpp_s2has(const DataFrame input)
     return data;
 }
 
-#  /*** R
-# set.seed(100)
-# library(tidyverse)
-# # mat <- data.frame(1:3,2:4,3:5,4:6,5:7,6:8,101:103)
-# 
-# # loop
-# # mat <- data.frame(rep(1,3),rep(1,3),1:3,c(2,3,4),5:7,6:8,101:103)
-# 
-# mat <- read_csv("../teiden.csv")
-# # mat <- mat %>% filter(fed1 == 7636688 | fed2 == 7636688)
-# # for(i in 1:10){
-# # mat2 <- mat %>% mutate(fed1 = fed1+19,fed2=fed2+19)
-# # mat <- rbind(mat,mat2)
-# # 
-# # }
-# 
-# # d <- 4000000
-# # mat <- data.frame(vapply(runif(d, min = 1, max = 9000),round,1),
-# #                   vapply(runif(d, min = 1, max = 9000),round,1),
-# #                   vapply(runif(d, min = 0, max = 1500000),round,1),
-# #                   vapply(runif(d, min = 0, max = 1500000),round,1),
-# #                   vapply(runif(d, min = 0, max = 1),round,1),
-# #                   vapply(runif(d, min = 0, max = 1),round,1),
-# #                   vapply(runif(d, min = 0, max = 1),round,1))
-# # colnames(mat) <- c("fed1","fed2","s1","s2","data1","data2","data3","data4")
-# #
-# # filter_df <- data.frame(fed1 = c(4482,5867,6357,7318,7670))
-# # mat <- mat %>% distinct(s2,.keep_all = TRUE) %>% anti_join(filter_df,by="fed1")
-# 
-# output <- cpp_s2has(mat)
-# # d <- reduce(output[[2]],rbind)
-# # microbenchmark::microbenchmark(
-# # k <- cpp_s2has(mat),times=5
-# # )
-# */
+/*** R
+set.seed(100)
+library(tidyverse)
+# mat <- data.frame(1:3,2:4,3:5,4:6,5:7,6:8,101:103)
+
+# loop
+# mat <- data.frame(rep(1,3),rep(1,3),1:3,c(2,3,4),5:7,6:8,101:103)
+
+mat <- read_csv("../teiden.csv")
+# mat <- mat %>% filter(fed1 == 7636688 | fed2 == 7636688)
+# for(i in 1:10){
+# mat2 <- mat %>% mutate(fed1 = fed1+19,fed2=fed2+19)
+# mat <- rbind(mat,mat2)
+#
+# }
+
+# d <- 4000000
+# mat <- data.frame(vapply(runif(d, min = 1, max = 9000),round,1),
+#                   vapply(runif(d, min = 1, max = 9000),round,1),
+#                   vapply(runif(d, min = 0, max = 1500000),round,1),
+#                   vapply(runif(d, min = 0, max = 1500000),round,1),
+#                   vapply(runif(d, min = 0, max = 1),round,1),
+#                   vapply(runif(d, min = 0, max = 1),round,1),
+#                   vapply(runif(d, min = 0, max = 1),round,1))
+# colnames(mat) <- c("fed1","fed2","s1","s2","data1","data2","data3","data4")
+#
+# filter_df <- data.frame(fed1 = c(4482,5867,6357,7318,7670))
+# mat <- mat %>% distinct(s2,.keep_all = TRUE) %>% anti_join(filter_df,by="fed1")
+microbenchmark::microbenchmark(
+output <- cpp_s2has(mat),times = 1
+)
+# d <- reduce(output[[2]],rbind)
+# microbenchmark::microbenchmark(
+# k <- cpp_s2has(mat),times=5
+# )
+*/
